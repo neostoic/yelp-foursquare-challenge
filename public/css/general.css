@@ -1,0 +1,59 @@
+body {
+    padding-top: 50px;
+}
+
+.center {
+    padding: 40px 15px;
+    text-align: center;
+}
+
+#search {
+    display: none;
+}
+
+#query {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.logo {
+    content:url("../img/barker.svg");
+    margin-top: -14px;
+    width: 54px;
+    -moz-transform: scaleX(-1);
+    -o-transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+    filter: FlipH;
+    -ms-filter: "FlipH";
+}
+
+.fido {
+    content:url("../img/barker_blue.svg");
+    margin-top: -14px;
+    width: 150px;
+}
+
+/* Spinning Loading */
+.glyphicon-refresh-animate {
+    -animation: spin .7s infinite linear;
+    -ms-animation: spin .7s infinite linear;
+    -webkit-animation: spinw .7s infinite linear;
+    -moz-animation: spinm .7s infinite linear;
+}
+ 
+@keyframes spin {
+    from { transform: scale(1) rotate(0deg);}
+    to { transform: scale(1) rotate(360deg);}
+}
+  
+@-webkit-keyframes spinw {
+    from { -webkit-transform: rotate(0deg);}
+    to { -webkit-transform: rotate(360deg);}
+}
+ 
+@-moz-keyframes spinm {
+    from { -moz-transform: rotate(0deg);}
+    to { -moz-transform: rotate(360deg);}
+}
+/* /Spinning Loading */

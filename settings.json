@@ -1,0 +1,25 @@
+{
+    "yelp": {
+        "consumer_key": "",
+        "consumer_secret": "",
+        "token": "",
+        "token_secret": ""
+    },
+
+    "w3w": {
+        "key": ""
+    },
+
+    "foursquare": {
+        "client_id": "",
+        "client_secret": ""
+    },
+
+    "name": "Places Viewer",
+
+    "db": {
+        "url": "localhost",
+        "name": "challenge"
+    }
+
+}
