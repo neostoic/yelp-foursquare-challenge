@@ -1,4 +1,5 @@
-// This program gathers unique data (based off of phone number) using the Yelp API for restaurants in Texas
+// Fetches all of the restaurants of the provided zip codes from Yelp and Foursquare
+// and then converts the lat/long into what3words before saving it into a combo collection
 
 // Fetch config
 var settings = require('./settings.json');
