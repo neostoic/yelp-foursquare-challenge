@@ -51,6 +51,7 @@ function Miner(category, zipcodes, type) {
     this.complete    = 0;
     this.lastError   = 0;
     this.lastSuccess = 0;
+    this.done        = false;
 }
 
 // Cycles through all of the zips
@@ -146,8 +147,8 @@ Miner.prototype.getPlaces = function(zipcode, finished) {
         },
         function (err) {
             // If complete == total zip codes we are finished.
-            // Also does a final progress update to show 100% completion
             if (++self.complete == totalZips) {
+                self.done = true;
                 finished();
             }
         }
@@ -185,7 +186,7 @@ Miner.prototype.search = function(zipcode, page, callback) {
 };
 
 Miner.prototype.getStats = function() {
-    return [this.matches, this.duplicates, this.total, this.complete, this.lastError, this.lastSuccess];
+    return [this.matches, this.duplicates, this.total, this.complete, this.lastError, this.lastSuccess, this.done];
 };
 
 module.exports = Miner;

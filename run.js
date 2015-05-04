@@ -79,6 +79,9 @@ async.parallel([
         clearInterval(foursquareTimer);
         clearInterval(stats);
 
+        // Show stats one last time with 100%s
+        showStats(true, true);
+
         combo(function() {
             mongoose.connection.close();
         });
@@ -87,16 +90,22 @@ async.parallel([
 console.log("\n\n\n\n\n\n\n\n\n");
 
 stats = setInterval(function() {
-    showStats();
+    showStats(yelpStats[6], foursquareStats[6]);
 }, 250);
 
-function showStats(done) {
-    done = done || false;
+function showStats(yelpDone, foursquareDone) {
+    yelpDone = yelpDone || false;
+    foursquareDone = foursquareDone || false;
 
-    if (done) {
-        yelpStats[3] = foursquareStats[3] = totalZips;
+    if (yelpDone) {
+        yelpStats[3] = totalZips;
     }
 
+    if (foursquareDone) {
+        foursquareStats[3] = totalZips;
+    }
+
+    // Yelp stats
     cursor.previousLine(10).horizontalAbsolute(0).eraseLine().write("Using " + yelp.type + " API...").nextLine();
     cursor.horizontalAbsolute(0).eraseLine().write("Duplicate:\t" + yelpStats[1] + "\t" + yelpStats[4]).nextLine();
     cursor.horizontalAbsolute(0).eraseLine().write("Saved:\t\t" + yelpStats[0] + "\t" + yelpStats[5]).nextLine();
