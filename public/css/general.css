@@ -16,6 +16,10 @@ body {
     text-align: center;
 }
 
+#loading {
+    display: none;
+}
+
 .logo {
     content:url("../img/barker.svg");
     margin-top: -14px;
@@ -32,6 +36,14 @@ body {
     content:url("../img/barker_blue.svg");
     margin-top: -14px;
     width: 150px;
+}
+
+caption {
+    text-align: center;
+}
+
+#results {
+    display: none;
 }
 
 /* Spinning Loading */

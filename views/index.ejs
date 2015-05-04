@@ -45,17 +45,63 @@
 
       <div class="center" id="search">
         <h1>Welcome to <%= title %></h1>
-        <p class="lead">What category do you want Fido to search in?<br></p>
+        <p class="lead">Fido is ready to fetch some results<br></p>
         <img class="fido">
         <form method="POST">
-          <select class="form-control">
-            <option value="food">Food</option>
-          </select>
-          <br>
-          <button id="submit" name="submit" class="btn btn-md btn-success">Search</button>
+          <input type="text" id="query" placeholder="Search for a restaurant" autofocus><span id="loading" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
         </form>
       </div>
+    </div>
+    <div class="container" id="results">
+      <div class="row">
+        <p align="center">Showing 1st 50 results</p>
+        <div class="col-xs-6 col-sm-4" id="yelp">
+          <table class="table" id="yelpTable">
+            <caption>Yelp</caption>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Phone</th>
+                <th>Zip</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+        <div class="col-xs-6 col-sm-4" id="combo">
+          <table class="table" id="comboTable">
+            <caption>Combo</caption>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Phone</th>
+                <th>Zip</th>
+                <th>What3Words</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+        <div class="col-xs-6 col-sm-4" id="foursquare">
+          <table class="table" id="foursquareTable">
+            <caption>Foursquare</caption>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Phone</th>
+                <th>Zip</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <table>
 
+      </table>
     </div>
 
 

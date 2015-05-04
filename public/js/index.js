@@ -1,28 +1,62 @@
 $(function() {
-    $("#search").slideDown(1000, function() {
-        
+    var searched = false;
+
+    // Slide down at start
+    $("#search").slideDown(1000);
+
+    // Timer to prevent updates of every character
+    var typingTimer;
+    var doneTypingInterval = 500;
+
+    $('#query').keyup(function() {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(doneTyping, doneTypingInterval);
     });
 
-    $("form").submit(function(e) {
-        e.preventDefault();
+    $('#query').keydown(function() {
+        $("#results").hide();
+        clearTimeout(typingTimer);
+    });
 
-        // Change style and text of submit button
-        $("#submit").addClass("btn-warning");
-        $("#submit").removeClass("btn-success");
-        $("#submit").html("Searching...<span class=\"glyphicon glyphicon-refresh glyphicon-refresh-animate\"></span>");
+    // Retrieve results from combo db
+    function doneTyping() {
+        // Move search bar to top
+        $('#loading').toggle();
 
-        var query = $("#query").val();
+        $.ajax({
+            type: 'POST',
+            url: '/',
+            data: {
+                query: $('#query').val()      
+            },
+            success: function (data) {
 
-        $.post("/", {
-            query: query,
-        }, function (data) {
-            // Successful
-            if (data.status == "valid") {
-                // Display results
-            // Failed
-            } else {
-                // Display Error
+                // Hide loading symbol
+                $('#loading').toggle();
+
+                // Clear all table values
+                $('#yelpTable tbody').remove();
+                $('#comboTable tbody').remove();
+                $('#foursquareTable tbody').remove();
+
+                // Yelp
+                $.each(data.yelp, function(key, value) {
+                    $('#yelpTable').append('<tr><td>' + (key+1) + '</td><td>' + value.phone + '</td><td>' + value.zip + '</td></tr>');
+                });
+
+                // Combo
+                $.each(data.combo, function(key, value) {
+                    $('#comboTable').append('<tr><td>' + (key+1) + '</td><td>' + value.phone + '</td><td>' + value.zip + '</td><td><a href="http://map.what3words.com/' + value.threeWords + '" target="_blank">' + value.threeWords + '</a></td></tr>');
+                });
+
+                // Foursquare
+                $.each(data.foursquare, function(key, value) {
+                    $('#foursquareTable').append('<tr><td>' + (key+1) + '</td><td>' + value.phone + '</td><td>' + value.zip + '</td></tr>');
+                });
+
+                $("#results").show();
             }
         });
-    });
+    };
+
 });
