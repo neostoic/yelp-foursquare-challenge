@@ -8,6 +8,14 @@ $(function() {
     var typingTimer;
     var doneTypingInterval = 500;
 
+    $('#query').on("keyup keypress", function(e) {
+        var code = e.keyCode || e.which;
+        if (code  == 13) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
     $('#query').keyup(function() {
         clearTimeout(typingTimer);
         typingTimer = setTimeout(doneTyping, doneTypingInterval);
