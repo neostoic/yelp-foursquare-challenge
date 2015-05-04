@@ -36,25 +36,25 @@ router.route('/')
 
         async.series([
             function(callback) {
-            Combo.find({"name": {$regex : new RegExp(query, "i")}}).limit(50).exec(function(err, docs) {
-                results.combo = docs;
-                callback();
+                Combo.find({"name": {$regex : new RegExp(query, "i")}}).limit(50).exec(function(err, docs) {
+                    results.combo = docs;
+                    callback();
                 });
             },
             function(callback) {
-            Yelp.find({"name": {$regex : new RegExp(query, "i")}}).limit(50).exec(function(err, docs) {
-                results.yelp = docs;
-                callback();
+                Yelp.find({"name": {$regex : new RegExp(query, "i")}}).limit(50).exec(function(err, docs) {
+                    results.yelp = docs;
+                    callback();
                 });
             },
             function(callback) {
-            Foursquare.find({"name": {$regex : new RegExp(query, "i")}}).limit(50).exec(function(err, docs) {
-                results.foursquare = docs;
-                callback();
+                Foursquare.find({"name": {$regex : new RegExp(query, "i")}}).limit(50).exec(function(err, docs) {
+                    results.foursquare = docs;
+                    callback();
                 });
             },
             function(err) {
-            res.send(results);
+                res.send(results);
             }
         ]);
     }
