@@ -5,7 +5,7 @@
 var settings = require('./settings.json');
 
 // Miner for APIs
-var miner = require('./miner');
+var Miner = require('./miner');
 
 // Combiner/sanatizer
 var combo = require('./combo');
@@ -39,44 +39,72 @@ async.series([
     function(callback) {
         cursor.write(totalZips + " total zip codes provided.\n\n");
         callback();
-    },
+    }
+]);
 
+var yelp;
+var yelpStats;
+var foursquare;
+var foursquareStats;
+
+async.parallel([
     // Yelp API datamining
     function(callback) {
-        matches    = 0;
-        duplicates = 0;
-        total      = 0;
-        complete   = 0;
+        yelp = new Miner("restaurants", zips, "yelp");
 
-        cursor.write("Using Yelp API...\n\n\n");
-
-        _.forEach(zips, function(item, index) {
-            if (miner.getPlaces("restaurants", item, "yelp", function() {
-                callback();
-            }));
+        yelp.run(function() {
+            callback();
         });
+
+        yelpTimer = setInterval(function() {
+            yelpStats = yelp.getStats()
+        }, 250);
     },
 
     // Foursquare API datamining
     function(callback) {
-        matches    = 0;
-        duplicates = 0;
-        total      = 0;
-        complete   = 0;
+        foursquare = new Miner("restaurants", zips, "foursquare");
 
-        cursor.write("Using Foursquare API...\n\n\n");
-
-        _.forEach(zips, function(item, index) {
-            if (miner.getPlaces("restaurants", item, "foursquare", function() {
-                callback();
-            }));
+        foursquare.run(function() {
+            callback();
         });
-    },
+
+        foursquareTimer = setInterval(function() {
+            foursquareStats = foursquare.getStats()
+        }, 250);
 
     // Combine and sanatize data
-    function(callback) {
+    }], function(callback) {
+        clearInterval(yelpTimer);
+        clearInterval(foursquareTimer);
+        clearInterval(stats);
+
         combo(function() {
             mongoose.connection.close();
         });
     }
-]);
+);
+console.log("\n\n\n\n\n\n\n\n\n");
+
+stats = setInterval(function() {
+    showStats();
+}, 250);
+
+function showStats(done) {
+    done = done || false;
+
+    if (done) {
+        yelpStats[3] = foursquareStats[3] = totalZips;
+    }
+
+    cursor.previousLine(10).horizontalAbsolute(0).eraseLine().write("Using " + yelp.type + " API...").nextLine();
+    cursor.horizontalAbsolute(0).eraseLine().write("Duplicate:\t" + yelpStats[1] + "\t" + yelpStats[4]).nextLine();
+    cursor.horizontalAbsolute(0).eraseLine().write("Saved:\t\t" + yelpStats[0] + "\t" + yelpStats[5]).nextLine();
+    cursor.horizontalAbsolute(0).eraseLine().write("Total:\t\t" + yelpStats[2] + "\t" + yelpStats[3] + "/" + totalZips + "\t" + Math.round((yelpStats[3]/totalZips)*100) + "%").nextLine(2);
+
+    // Foursquare stats
+    cursor.horizontalAbsolute(0).eraseLine().write("Using " + foursquare.type + " API...").nextLine();
+    cursor.horizontalAbsolute(0).eraseLine().write("Duplicate:\t" + foursquareStats[1] + "\t" + foursquareStats[4]).nextLine();
+    cursor.horizontalAbsolute(0).eraseLine().write("Saved:\t\t" + foursquareStats[0] + "\t" + foursquareStats[5]).nextLine();
+    cursor.horizontalAbsolute(0).eraseLine().write("Total:\t\t" + foursquareStats[2] + "\t" + foursquareStats[3] + "/" + totalZips + "\t" + Math.round((foursquareStats[3]/totalZips)*100) + "%").nextLine(2);
+}
