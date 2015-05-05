@@ -169,9 +169,12 @@ Miner.prototype.search = function(zipcode, page, callback) {
 
     self.hangCheck = setInterval(function() {
         if (self.isHung()) {
+            // Reset last save time
+            self.time = Date.now();
+
             callback("error", null);
         }
-    }, 30000);
+    }, 5000);
 
     // Default to 1st page
     page = page || 1;
@@ -214,11 +217,11 @@ Miner.prototype.getStats = function() {
 };
 
 // It looks like the API class will hang sometimes...
-// This will run periodically every 30 seconds or so
-// and assume data mining is finished if self.time hasn't
-// been updated since last check.
+// This will run periodically every 5 seconds or so
+// and assume data mining (for zipcode) is finished
+// if self.time hasn't been updated since last check.
 Miner.prototype.isHung = function() {
-    return (Date.now() - this.time) > 30000;
+    return (Date.now() - this.time) > 5000;
 };
 
 module.exports = Miner;

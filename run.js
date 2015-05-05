@@ -16,6 +16,9 @@ var async = require('async');
 var ansi = require('ansi');
 var cursor = ansi(process.stdout);
 var mongoose = require('mongoose');
+var colors = require('colors');
+var moment = require('moment');
+var numeral = require('numeral');
 
 // Connect to our db
 mongoose.connect('mongodb://' + settings.db.url + '/' + settings.db.name);
@@ -37,15 +40,19 @@ async.series([
 
     // Output number of zipcodes to cycle through
     function(callback) {
-        cursor.write(totalZips + " total zip codes provided.\n\n");
+        cursor.write(numeral(totalZips).format('0,0') + " total zip codes provided.\n\n");
         callback();
     }
 ]);
 
+// Miner vars
 var yelp;
 var yelpStats;
 var foursquare;
 var foursquareStats;
+
+// ETA estimate
+var start = Date.now();
 
 async.parallel([
     // Yelp API datamining
@@ -92,7 +99,6 @@ async.parallel([
         });
     }
 );
-console.log("\n\n\n\n\n\n\n\n\n");
 
 // Update stats every 250 ms
 stats = setInterval(function() {
@@ -111,13 +117,26 @@ foursquareHangCheck = setInterval(function() {
     }
 }, 30000);
 
+// Make room for showStats
+console.log("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+
 // Display progress
 function showStats(yelpDone, foursquareDone) {
-    yelpDone = yelpDone || false;
+    yelpDone       = yelpDone || false;
     foursquareDone = foursquareDone || false;
 
-    yelpEstimate = yelpStats[2]/449;
-    foursquareEstimate = foursquareStats[2]/300;
+    // Average places per zip
+    var yelpAvg       = 449;
+    var foursquareAvg = 300;
+
+    // Estimate % complete
+    var yelpEstimate       = yelpStats[2]/yelpAvg;
+    var foursquareEstimate = foursquareStats[2]/foursquareAvg;
+
+    // Time estimates
+    var diff           = Date.now() - start;
+    var yelpTime       = convSecs((((yelpAvg*totalZips)/yelpStats[2])*diff)/1000);
+    var foursquareTime = convSecs((((foursquareAvg*totalZips)/foursquareStats[2])*diff)/1000);
 
     if (yelpDone) {
         yelpStats[3] = yelpEstimate = totalZips;
@@ -128,14 +147,37 @@ function showStats(yelpDone, foursquareDone) {
     }
 
     // Yelp stats
-    cursor.previousLine(10).horizontalAbsolute(0).eraseLine().write("Using " + yelp.type + " API...").nextLine();
-    cursor.horizontalAbsolute(0).eraseLine().write("Duplicate:\t" + yelpStats[1] + "\t" + yelpStats[4]).nextLine();
-    cursor.horizontalAbsolute(0).eraseLine().write("Saved:\t\t" + yelpStats[0] + "\t" + yelpStats[5]).nextLine();
-    cursor.horizontalAbsolute(0).eraseLine().write("Total:\t\t" + yelpStats[2] + "\t" + yelpStats[3] + "/" + totalZips + "\t" + Math.round((yelpStats[3]/totalZips)*100) + "%\t~" + (((yelpEstimate)/totalZips)*100).toFixed(2) + "%").nextLine(2);
+    cursor.previousLine(18).horizontalAbsolute(0).eraseLine().write("=== " + yelp.type + " ===").nextLine();
+    cursor.horizontalAbsolute(0).eraseLine().write("Duplicate:\t" + numeral(yelpStats[1]).format('0,0').toString().red + "\t" + yelpStats[4]).nextLine();
+    cursor.horizontalAbsolute(0).eraseLine().write("Saved:\t\t" + numeral(yelpStats[0]).format('0,0').toString().green + "\t" + yelpStats[5]).nextLine();
+    cursor.horizontalAbsolute(0).eraseLine().write("Total:\t\t" + numeral(yelpStats[2]).format('0,0') + "\t" + numeral(yelpStats[3]).format('0,0') + "/" + numeral(totalZips).format('0,0') + " zips").nextLine();
+    cursor.horizontalAbsolute(0).eraseLine().write("Estimates:\t~" + (((yelpEstimate)/totalZips)*100).toFixed(2) + "%\tRatio:\t" + ((yelpStats[0]/(yelpStats[0]+yelpStats[1]))*100).toFixed(2) + "%\tETA:\t" + yelpTime).nextLine(2);
 
     // Foursquare stats
-    cursor.horizontalAbsolute(0).eraseLine().write("Using " + foursquare.type + " API...").nextLine();
-    cursor.horizontalAbsolute(0).eraseLine().write("Duplicate:\t" + foursquareStats[1] + "\t" + foursquareStats[4]).nextLine();
-    cursor.horizontalAbsolute(0).eraseLine().write("Saved:\t\t" + foursquareStats[0] + "\t" + foursquareStats[5]).nextLine();
-    cursor.horizontalAbsolute(0).eraseLine().write("Total:\t\t" + foursquareStats[2] + "\t" + foursquareStats[3] + "/" + totalZips + "\t" + Math.round((foursquareStats[3]/totalZips)*100) + "%\t~" + (((foursquareEstimate)/totalZips)*100).toFixed(2) + "%").nextLine(2);
+    cursor.horizontalAbsolute(0).eraseLine().write("=== " + foursquare.type + " ===").nextLine();
+    cursor.horizontalAbsolute(0).eraseLine().write("Duplicate:\t" + numeral(foursquareStats[1]).format('0,0').toString().red + "\t" + foursquareStats[4]).nextLine();
+    cursor.horizontalAbsolute(0).eraseLine().write("Saved:\t\t" + numeral(foursquareStats[0]).format('0,0').toString().green + "\t" + foursquareStats[5]).nextLine();
+    cursor.horizontalAbsolute(0).eraseLine().write("Total:\t\t" + numeral(foursquareStats[2]).format('0,0') + "\t" + numeral(foursquareStats[3]).format('0,0') + "/" + numeral(totalZips).format('0,0') + " zips").nextLine();
+    cursor.horizontalAbsolute(0).eraseLine().write("Estimates:\t~" + (((foursquareEstimate)/totalZips)*100).toFixed(2) + "%\tRatio:\t" + ((foursquareStats[0]/(foursquareStats[0]+foursquareStats[1]))*100).toFixed(2) + "%\tETA:\t" + foursquareTime).nextLine(2);
+
+    // Total stats
+    cursor.horizontalAbsolute(0).eraseLine().write("=== Totals ===").nextLine();
+    cursor.horizontalAbsolute(0).eraseLine().write("Duplicate:\t" + numeral((yelpStats[1]+foursquareStats[1])).format('0,0').toString().red).nextLine();
+    cursor.horizontalAbsolute(0).eraseLine().write("Saved:\t\t" + numeral((yelpStats[0]+foursquareStats[0])).format('0,0').toString().green).nextLine();
+    cursor.horizontalAbsolute(0).eraseLine().write("Total:\t\t" + numeral((yelpStats[2]+foursquareStats[2])).format('0,0')).nextLine();
+    cursor.horizontalAbsolute(0).eraseLine().write("Estimates:\t~" + (((foursquareEstimate+yelpEstimate)/(totalZips*2))*100).toFixed(2) + "%\tRatio:\t" + (((yelpStats[0]+foursquareStats[0])/(foursquareStats[0]+foursquareStats[1]+yelpStats[0]+yelpStats[1]))*100).toFixed(2) + "%\tETA:\t" + (foursquareTime > yelpTime ? foursquareTime : yelpTime)).nextLine(2);
+}
+
+function convSecs(seconds) {
+    var d = moment.duration(seconds, 'seconds');
+    var hours = Math.floor(d.asHours());
+    var mins = Math.floor(d.asMinutes()) - hours * 60;
+    var seconds = Math.floor(d.asSeconds()) - mins * 60 - hours * 3600;
+
+    return hours + ":" + zeroPad(mins, 2) + ":" + zeroPad(seconds, 2);
+}
+
+function zeroPad(num, places) {
+    var zero = places - num.toString().length + 1;
+    return Array(+(zero > 0 && zero)).join("0") + num;
 }
