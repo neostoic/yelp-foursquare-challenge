@@ -116,7 +116,7 @@ function showStats(yelpDone, foursquareDone) {
     yelpDone = yelpDone || false;
     foursquareDone = foursquareDone || false;
 
-    yelpEstimate = yelpStats[2]/623;
+    yelpEstimate = yelpStats[2]/449;
     foursquareEstimate = foursquareStats[2]/300;
 
     if (yelpDone) {
