@@ -11,6 +11,7 @@ var _ = require('lodash');
 var async = require('async');
 var ansi = require('ansi');
 var cursor = ansi(process.stdout);
+var attempt = require('attempt');
 
 // Mongoose Models
 var Foursquare = require('./models/foursquare.js').Foursquare;
@@ -52,6 +53,11 @@ function Miner(category, zipcodes, type) {
     this.lastError   = 0;
     this.lastSuccess = 0;
     this.done        = false;
+
+    // Hang detector
+    this.time        = Date.now();
+    this.quit        = false;
+    this.hangCheck;
 }
 
 // Cycles through all of the zips
@@ -75,7 +81,6 @@ Miner.prototype.getPlaces = function(zipcode, finished) {
     async.whilst(
         function () { page++; return !done; },
         function (callback) {
-
             self.search(zipcode, page, function(err, data) {
                 if (err) {
                     done = true;
@@ -139,6 +144,9 @@ Miner.prototype.getPlaces = function(zipcode, finished) {
                                 self.lastSuccess = place.name;
                             }
                             self.total = self.matches + self.duplicates;
+
+                            // Update last successful save time
+                            self.time = Date.now();
                         })
                     });
                 }
@@ -159,6 +167,12 @@ Miner.prototype.getPlaces = function(zipcode, finished) {
 Miner.prototype.search = function(zipcode, page, callback) {
     var self = this;
 
+    self.hangCheck = setInterval(function() {
+        if (self.isHung()) {
+            callback("error", null);
+        }
+    }, 30000);
+
     // Default to 1st page
     page = page || 1;
 
@@ -174,19 +188,37 @@ Miner.prototype.search = function(zipcode, page, callback) {
         });
     } else {
         // No Foursquare modules (or they were unstable), so manually use request to query the API
-        request(base + "limit=50&section=" + self.category + "&near=" + zipcode + "&offset=" + page*50, function (error, response, body) {
-            body = JSON.parse(body);
-            if (!error && response.statusCode == 200 && !body.response.warning) {
-                callback(null, body.response.groups[0].items);
-            } else {
-                callback(body.response.warning, null);
+        attempt(
+            {retries: 5},
+            function() {
+                request(base + "limit=50&section=" + self.category + "&near=" + zipcode + "&offset=" + page*50, function (error, response, body) {
+                    try {
+                        body = JSON.parse(body);
+                    } catch(e) {
+                        callback("bad", null);
+                    }
+
+                    if (!error && response.statusCode == 200 && !body.response.warning) {
+                        callback(null, body.response.groups[0].items);
+                    } else {
+                        callback("bad", null);
+                    }
+                });
             }
-        });
+        );
     }
 };
 
 Miner.prototype.getStats = function() {
     return [this.matches, this.duplicates, this.total, this.complete, this.lastError, this.lastSuccess, this.done];
+};
+
+// It looks like the API class will hang sometimes...
+// This will run periodically every 30 seconds or so
+// and assume data mining is finished if self.time hasn't
+// been updated since last check.
+Miner.prototype.isHung = function() {
+    return (Date.now() - this.time) > 30000;
 };
 
 module.exports = Miner;

@@ -77,43 +77,65 @@ async.parallel([
     }], function(callback) {
         clearInterval(yelpTimer);
         clearInterval(foursquareTimer);
+
         clearInterval(stats);
+
+        clearInterval(yelp.hangCheck);
+        clearInterval(foursquare.hangCheck);
 
         // Show stats one last time with 100%s
         showStats(true, true);
 
         combo(function() {
             mongoose.connection.close();
+            process.exit(1);
         });
     }
 );
 console.log("\n\n\n\n\n\n\n\n\n");
 
+// Update stats every 250 ms
 stats = setInterval(function() {
     showStats(yelpStats[6], foursquareStats[6]);
 }, 250);
 
+yelpHangCheck = setInterval(function() {
+    if (yelp.isHung()) {
+        yelp.quit = true;
+    }
+}, 30000);
+
+foursquareHangCheck = setInterval(function() {
+    if (foursquare.isHung()) {
+        foursquare.quit = true;
+    }
+}, 30000);
+
+// Display progress
 function showStats(yelpDone, foursquareDone) {
     yelpDone = yelpDone || false;
     foursquareDone = foursquareDone || false;
 
+    yelpEstimate = yelpStats[2]/623;
+    foursquareEstimate = foursquareStats[2]/300;
+
     if (yelpDone) {
-        yelpStats[3] = totalZips;
+        yelpStats[3] = yelpEstimate = totalZips;
     }
 
     if (foursquareDone) {
-        foursquareStats[3] = totalZips;
+        foursquareStats[3] = foursquareEstimate = totalZips;
     }
 
     // Yelp stats
     cursor.previousLine(10).horizontalAbsolute(0).eraseLine().write("Using " + yelp.type + " API...").nextLine();
     cursor.horizontalAbsolute(0).eraseLine().write("Duplicate:\t" + yelpStats[1] + "\t" + yelpStats[4]).nextLine();
     cursor.horizontalAbsolute(0).eraseLine().write("Saved:\t\t" + yelpStats[0] + "\t" + yelpStats[5]).nextLine();
-    cursor.horizontalAbsolute(0).eraseLine().write("Total:\t\t" + yelpStats[2] + "\t" + yelpStats[3] + "/" + totalZips + "\t" + Math.round((yelpStats[3]/totalZips)*100) + "%").nextLine(2);
+    cursor.horizontalAbsolute(0).eraseLine().write("Total:\t\t" + yelpStats[2] + "\t" + yelpStats[3] + "/" + totalZips + "\t" + Math.round((yelpStats[3]/totalZips)*100) + "%\t~" + (((yelpEstimate)/totalZips)*100).toFixed(2) + "%").nextLine(2);
 
     // Foursquare stats
     cursor.horizontalAbsolute(0).eraseLine().write("Using " + foursquare.type + " API...").nextLine();
     cursor.horizontalAbsolute(0).eraseLine().write("Duplicate:\t" + foursquareStats[1] + "\t" + foursquareStats[4]).nextLine();
     cursor.horizontalAbsolute(0).eraseLine().write("Saved:\t\t" + foursquareStats[0] + "\t" + foursquareStats[5]).nextLine();
-    cursor.horizontalAbsolute(0).eraseLine().write("Total:\t\t" + foursquareStats[2] + "\t" + foursquareStats[3] + "/" + totalZips + "\t" + Math.round((foursquareStats[3]/totalZips)*100) + "%").nextLine(2);
+    cursor.horizontalAbsolute(0).eraseLine().write("Total:\t\t" + foursquareStats[2] + "\t" + foursquareStats[3] + "/" + totalZips + "\t" + Math.round((foursquareStats[3]/totalZips)*100) + "%\t~" + (((foursquareEstimate)/totalZips)*100).toFixed(2) + "%").nextLine(2);
 }
