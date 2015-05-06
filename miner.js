@@ -11,7 +11,6 @@ var _ = require('lodash');
 var async = require('async');
 var ansi = require('ansi');
 var cursor = ansi(process.stdout);
-var attempt = require('attempt');
 
 // Mongoose Models
 var Foursquare = require('./models/foursquare.js').Foursquare;
@@ -191,24 +190,19 @@ Miner.prototype.search = function(zipcode, page, callback) {
         });
     } else {
         // No Foursquare modules (or they were unstable), so manually use request to query the API
-        attempt(
-            {retries: 5},
-            function() {
-                request(base + "limit=50&section=" + self.category + "&near=" + zipcode + "&offset=" + page*50, function (error, response, body) {
-                    try {
-                        body = JSON.parse(body);
-                    } catch(e) {
-                        callback("bad", null);
-                    }
-
-                    if (!error && response.statusCode == 200 && !body.response.warning) {
-                        callback(null, body.response.groups[0].items);
-                    } else {
-                        callback("bad", null);
-                    }
-                });
+        request(base + "limit=50&section=" + self.category + "&near=" + zipcode + "&offset=" + page*50, function (error, response, body) {
+            try {
+                body = JSON.parse(body);
+            } catch(e) {
+                callback("bad", null);
             }
-        );
+
+            if (!error && response.statusCode == 200 && !body.response.warning) {
+                callback(null, body.response.groups[0].items);
+            } else {
+                callback("bad", null);
+            }
+        });
     }
 };
 

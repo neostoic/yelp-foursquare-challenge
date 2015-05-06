@@ -134,16 +134,18 @@ function showStats(yelpDone, foursquareDone) {
     var foursquareEstimate = foursquareStats[2]/foursquareAvg;
 
     // Time estimates
-    var diff           = Date.now() - start;
-    var yelpTime       = convSecs((((yelpAvg*totalZips)/yelpStats[2])*diff)/1000);
-    var foursquareTime = convSecs((((foursquareAvg*totalZips)/foursquareStats[2])*diff)/1000);
+    var diff           = Math.floor((Date.now()-start)/1000);
+    var yelpTime       = convSecs(((yelpAvg*totalZips)/(yelpStats[2]/diff))-diff);
+    var foursquareTime = convSecs(((foursquareAvg*totalZips)/(foursquareStats[2]/diff))-diff);
 
     if (yelpDone) {
         yelpStats[3] = yelpEstimate = totalZips;
+        yelpTime     = convSecs(0);
     }
 
     if (foursquareDone) {
         foursquareStats[3] = foursquareEstimate = totalZips;
+        foursquareTime     = convSecs(0);
     }
 
     // Yelp stats
@@ -169,7 +171,7 @@ function showStats(yelpDone, foursquareDone) {
 }
 
 function convSecs(seconds) {
-    var d = moment.duration(seconds, 'seconds');
+    var d = moment.duration(Math.floor(seconds), 'seconds');
     var hours = Math.floor(d.asHours());
     var mins = Math.floor(d.asMinutes()) - hours * 60;
     var seconds = Math.floor(d.asSeconds()) - mins * 60 - hours * 3600;
