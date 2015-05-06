@@ -62,6 +62,7 @@ module.exports = function combo(finished) {
                 if (yelpResults.length == 0 || foursquareCount == 0) {
                     cursor.write("\nThere appear to be 0 Yelp or 0 Foursquare documents...aborting.\n");
                     cursor.show();
+                    
                     mongoose.connection.close();
                     process.exit(1);
                 }
@@ -119,8 +120,10 @@ module.exports = function combo(finished) {
                                 } else {
                                     cursor.previousLine().horizontalAbsolute(0).eraseLine().write("Saved:\t\t" + ++matches + "\t" + combo.name).nextLine();
                                 }
+                                
                                 current = matches+duplicates;
                                 cursor.horizontalAbsolute(0).eraseLine().write("Total:\t\t" + current + "/" + total + "\t" + Math.round((current/total)*100) + "%");
+                                
                                 // If current == total, we are finished.
                                 if (current == total) {
                                     cursor.write("\nFinished combining and sanatizing data.\n");
