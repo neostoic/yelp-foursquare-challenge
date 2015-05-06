@@ -180,6 +180,7 @@ Miner.prototype.search = function(zipcode, page, callback) {
 
     // Use Yelp or Foursquare
     if (self.type == "yelp") {
+        
         // Use the Yelp module
         yelp.search({term: self.category, location: zipcode, limit: 20, offset: (page-1)*20}, function(error, data) {
             if (!error) {
