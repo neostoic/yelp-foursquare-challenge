@@ -14,7 +14,6 @@ var base = "http://api.what3words.com/";
 module.exports = {
 
     // Converts lat and long into 3 words
-    // Sometimes w3w returns an error, so retry 5 times before moving on
     getWords: function(lat, long, callback) {
         request(base + "position?key=" + key + "&position=" + lat + "," + long, function (error, response, body) {
             try {
